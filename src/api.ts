@@ -1,4 +1,5 @@
 import { defineOperationApi } from '@directus/extensions-sdk';
+import { createError } from '@directus/errors';
 import { CloudTasksClient } from '@google-cloud/tasks';
 
 // Instantiates a client.
@@ -13,10 +14,11 @@ type Options = {
 	delay: string
 };
 
+const GCPTaskError = createError<any>('GCP_TASK_ERROR', 'Basic error', 500);
+
 export default defineOperationApi<Options>({
 	id: 'gcp-tasks',
-	handler: async ({ project, queue, location, url, payload, delay }, { logger, exceptions }) => {
-		const { BaseException  } = exceptions
+	handler: async ({ project, queue, location, url, payload, delay }, { logger }) => {
 		try {
 			const convertedPayload = JSON.stringify(payload);
 
@@ -58,7 +60,7 @@ export default defineOperationApi<Options>({
 
 			return `Task created ${response.name}`
 		} catch (err) {
-			throw new BaseException(err)
+			throw new GCPTaskError(err)
 		}
 	},
 });
